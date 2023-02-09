@@ -35,6 +35,7 @@ class AccountServiceTest {
     public static final Client OWNER = new Client();
     public static final int TOTAL = 0;
     public static final double VALUE = 123.0;
+    public static final double HUGE_VALUE = 10000000.0;
 
     @Test
     void testDeposit() {
@@ -64,7 +65,7 @@ class AccountServiceTest {
         assertTrue(shouldDeposit);
 
         doReturn(getOptionalAccount()).when(repository).findById(ID);
-        boolean shouldNotDeposit = service.draw(account, 10000000.0);
+        boolean shouldNotDeposit = service.draw(account, HUGE_VALUE);
         assertFalse(shouldNotDeposit);
 
         doThrow(ResourceNotFoundException.class).when(repository).findById(ID);
@@ -87,6 +88,11 @@ class AccountServiceTest {
         doReturn(getOptionalAccount()).when(repository).findById(ID_TO);
         boolean response = service.transfer(accountFrom, accountTo, VALUE);
         assertTrue(response);
+
+        doReturn(getOptionalAccount()).when(repository).findById(ID);
+        doReturn(getOptionalAccount()).when(repository).findById(ID_TO);
+        boolean shouldNotTransfer = service.transfer(accountFrom, accountTo, HUGE_VALUE);
+        assertFalse(shouldNotTransfer);
 
         doThrow(ResourceNotFoundException.class).when(repository).findById(ID);
         Exception notFoundException = assertThrows(ResourceNotFoundException.class, () -> service.transfer(

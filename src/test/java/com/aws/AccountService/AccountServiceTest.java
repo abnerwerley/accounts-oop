@@ -29,12 +29,12 @@ class AccountServiceTest {
 
     public static final Long ID = 9L;
     public static final Long ID_TO = 10L;
-    public static final double BALANCE = 1234.0;
+    public static final double BALANCE = 1500.0;
     public static final int AGENCY = 123;
     public static final int NUMBER = 123456;
     public static final Client OWNER = new Client();
     public static final int TOTAL = 0;
-    public static final double VALUE = 123.0;
+    public static final double VALUE = 100.0;
     public static final double HUGE_VALUE = 10000000.0;
 
     @Test
@@ -42,12 +42,12 @@ class AccountServiceTest {
         Account account = new Account(ID, BALANCE, AGENCY, NUMBER, OWNER);
 
         doReturn(getOptionalAccount()).when(repository).findById(ID);
-        boolean shouldDeposit = service.deposit(account, VALUE);
-        assertTrue(shouldDeposit);
+        double shouldDeposit = service.deposit(account, VALUE);
+        assertEquals(1600.0, shouldDeposit);
 
         doThrow(ResourceNotFoundException.class).when(repository).findById(ID);
-        Exception notFoundExceptionexception = assertThrows(ResourceNotFoundException.class, () -> service.deposit(account, VALUE));
-        assertNotNull(notFoundExceptionexception);
+        Exception notFoundException = assertThrows(ResourceNotFoundException.class, () -> service.deposit(account, VALUE));
+        assertNotNull(notFoundException);
 
         doReturn(getOptionalAccount()).when(repository).findById(ID);
         doThrow(IllegalArgumentException.class).when(repository).save(account);
@@ -61,12 +61,12 @@ class AccountServiceTest {
         Account account = new Account(ID, BALANCE, AGENCY, NUMBER, OWNER);
 
         doReturn(getOptionalAccount()).when(repository).findById(ID);
-        boolean shouldDeposit = service.draw(account, VALUE);
-        assertTrue(shouldDeposit);
+        double shouldDraw = service.draw(account, VALUE);
+        assertEquals(1400.0, shouldDraw);
 
         doReturn(getOptionalAccount()).when(repository).findById(ID);
-        boolean shouldNotDeposit = service.draw(account, HUGE_VALUE);
-        assertFalse(shouldNotDeposit);
+        Exception shouldNotDraw = assertThrows(RequestException.class, () -> service.draw(account, HUGE_VALUE));
+        assertNotNull(shouldNotDraw);
 
         doThrow(ResourceNotFoundException.class).when(repository).findById(ID);
         Exception notFoundException = assertThrows(ResourceNotFoundException.class, () -> service.draw(account, VALUE));

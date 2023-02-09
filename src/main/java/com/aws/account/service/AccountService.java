@@ -19,7 +19,7 @@ public class AccountService {
 
     public static final String ACCOUNT_DOES_NOT_EXIST = "Account does not exist.";
 
-    public boolean deposit(Account account, double value) {
+    public double deposit(Account account, double value) {
         try {
             Optional<Account> owner = repository.findById(account.getId());
             if (owner.isEmpty()) {
@@ -28,7 +28,7 @@ public class AccountService {
             double balance = owner.get().getBalance();
             owner.get().setBalance(balance + value);
             repository.save(owner.get());
-            return true;
+            return (balance + value);
         } catch (ResourceNotFoundException e) {
             throw new ResourceNotFoundException(e.getMessage());
         } catch (Exception e) {
@@ -36,18 +36,18 @@ public class AccountService {
         }
     }
 
-    public boolean draw(Account account, double value) {
+    public double draw(Account account, double value) {
         try {
             Optional<Account> owner = repository.findById(account.getId());
             if (owner.isEmpty()) {
                 throw new ResourceNotFoundException(ACCOUNT_DOES_NOT_EXIST);
             }
             if (owner.get().getBalance() >= value) {
-                owner.get().setBalance(owner.get().getBalance() + value);
+                owner.get().setBalance(owner.get().getBalance() - value);
                 repository.save(owner.get());
-                return true;
+                return owner.get().getBalance();
             }
-            return false;
+            throw new RequestException("You do not have all this money to draw.");
         } catch (ResourceNotFoundException e) {
             throw new ResourceNotFoundException(e.getMessage());
         } catch (Exception e) {
@@ -62,7 +62,8 @@ public class AccountService {
             if (accountFrom.isEmpty() || accountTo.isEmpty()) {
                 throw new ResourceNotFoundException(ACCOUNT_DOES_NOT_EXIST);
             }
-            if (draw(accountFrom.get(), value)) {
+            if (accountFrom.get().getBalance() >= value) {
+                draw(accountFrom.get(), value);
                 deposit(accountTo.get(), value);
                 return true;
             }
